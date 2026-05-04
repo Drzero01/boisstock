@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>BoisStock Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --green-900: #0d2818;
+  --green-800: #1a3a2a;
+  --green-700: #2d6a4f;
+  --green-600: #40916c;
+  --green-200: #d8f3dc;
+  --green-100: #edf7ee;
+  --amber-400: #fbbf24;
+  --amber-100: #fef3c7;
+  --amber-900: #78350f;
+  --blue-400: #60a5fa;
+  --blue-100: #dbeafe;
+  --blue-900: #1e3a5f;
+  --red-100: #fee2e2;
+  --red-900: #7f1d1d;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-400: #9ca3af;
+  --gray-600: #4b5563;
+  --gray-900: #111827;
+  --white: #ffffff;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--gray-50);}
+body{font-family:'DM Sans',sans-serif;color:var(--gray-900);font-size:15px;}
+
+/* APP SHELL */
+#app{height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:var(--white);position:relative;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.08);}
+.screen{display:none;flex-direction:column;height:100%;overflow:hidden;}
+.screen.active{display:flex;}
+.scroll-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+
+/* TOPBAR */
+.topbar{background:var(--green-800);color:var(--white);padding:14px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;position:relative;}
+.topbar h2{font-size:16px;font-weight:500;flex:1;letter-spacing:-0.2px;}
+.back-btn{font-size:22px;cursor:pointer;line-height:1;opacity:.9;}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--green-700);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;letter-spacing:.5px;flex-shrink:0;}
+
+/* BADGES */
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:.3px;display:inline-block;}
+.badge-green{background:var(--green-200);color:#1b5e3b;}
+.badge-amber{background:var(--amber-100);color:var(--amber-900);}
+.badge-blue{background:var(--blue-100);color:var(--blue-900);}
+.badge-red{background:var(--red-100);color:var(--red-900);}
+
+/* LOGIN */
+#s-login{background:linear-gradient(160deg, var(--green-900) 0%, #1a3a2a 50%, #0a1f12 100%);}
+.login-inner{flex:1;display:flex;flex-direction:column;justify-content:center;padding:32px 28px;}
+.login-logo{text-align:center;margin-bottom:40px;}
+.logo-icon{width:72px;height:72px;background:rgba(255,255,255,.08);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px;border:1px solid rgba(255,255,255,.1);}
+.login-logo h1{font-size:26px;font-weight:600;color:var(--white);letter-spacing:-0.5px;}
+.login-logo p{font-size:13px;color:rgba(255,255,255,.45);margin-top:4px;font-family:'DM Mono',monospace;}
+.field{margin-bottom:16px;}
+.field label{font-size:12px;font-weight:500;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:7px;}
+.field input,.field select{width:100%;padding:13px 16px;border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);font-size:15px;font-family:'DM Sans',sans-serif;background:rgba(255,255,255,.06);color:var(--white);outline:none;transition:border-color .2s;}
+.field input::placeholder{color:rgba(255,255,255,.25);}
+.field input:focus{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.09);}
+.btn-login{width:100%;padding:14px;background:var(--green-600);color:var(--white);border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:8px;transition:background .2s,opacity .2s;letter-spacing:-.2px;}
+.btn-login:active{opacity:.85;}
+.btn-login:disabled{opacity:.5;cursor:not-allowed;}
+.login-err{color:#fca5a5;font-size:13px;text-align:center;margin-top:12px;min-height:18px;}
+.login-footer{text-align:center;margin-top:24px;font-size:12px;color:rgba(255,255,255,.2);font-family:'DM Mono',monospace;}
+
+/* DASHBOARD */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px;}
+.stat-card{background:var(--gray-50);border-radius:var(--radius);padding:16px;border:1px solid var(--gray-100);}
+.stat-label{font-size:11px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.6px;font-weight:500;margin-bottom:6px;}
+.stat-val{font-size:28px;font-weight:600;letter-spacing:-1px;line-height:1;}
+.stat-val.green{color:var(--green-700);}
+.stat-val.amber{color:#d97706;}
+.stat-val.blue{color:#2563eb;}
+.stat-val.dark{color:var(--gray-900);}
+
+.menu-section{padding:0 16px 8px;}
+.section-label{font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:.8px;padding:16px 0 8px;}
+.menu-item{display:flex;align-items:center;gap:14px;padding:15px 16px;background:var(--white);border:1px solid var(--gray-100);border-radius:var(--radius);margin-bottom:8px;cursor:pointer;transition:background .15s,transform .1s;}
+.menu-item:active{background:var(--gray-50);transform:scale(.99);}
+.menu-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.menu-text{flex:1;}
+.menu-title{font-size:15px;font-weight:500;}
+.menu-sub{font-size:12px;color:var(--gray-400);margin-top:1px;}
+.menu-arrow{color:var(--gray-400);font-size:18px;}
+
+/* SEARCH */
+.search-bar{padding:12px 16px;border-bottom:1px solid var(--gray-100);}
+.sbox{display:flex;align-items:center;gap:10px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:0 14px;}
+.sbox input{flex:1;padding:12px 0;border:none;background:transparent;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--gray-900);outline:none;}
+.sbox input::placeholder{color:var(--gray-400);}
+.search-icon{color:var(--gray-400);font-size:16px;}
+
+.hint-state{text-align:center;padding:48px 24px;}
+.hint-state .hint-icon{font-size:40px;margin-bottom:12px;opacity:.4;}
+.hint-state p{font-size:14px;color:var(--gray-400);}
+.hint-state small{font-size:12px;color:var(--gray-400);margin-top:4px;display:block;font-family:'DM Mono',monospace;}
+
+.result-card{margin:0 16px 10px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px;}
+.result-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.result-ref{font-size:16px;font-weight:600;letter-spacing:-.3px;font-family:'DM Mono',monospace;}
+.result-des{font-size:13px;color:var(--gray-600);margin-bottom:10px;}
+.info-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--gray-100);}
+.info-row:last-child{border:none;}
+.info-label{color:var(--gray-400);}
+.info-val{font-weight:500;text-align:right;}
+.date-tag{font-size:11px;color:var(--gray-400);margin-top:8px;text-align:right;font-family:'DM Mono',monospace;}
+
+/* STATUS COLORS inline */
+.statut-DISPONIBLE{color:#1b5e3b;background:var(--green-200);}
+.statut-RESERVE{color:var(--amber-900);background:var(--amber-100);}
+.statut-LIVRE{color:var(--blue-900);background:var(--blue-100);}
+
+/* COMMANDES */
+.nav-tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray-200);flex-shrink:0;}
+.nav-tab{flex:1;padding:12px 8px;text-align:center;font-size:13px;font-weight:500;color:var(--gray-400);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.nav-tab.active{color:var(--green-700);border-bottom-color:var(--green-700);}
+
+.comm-card{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--gray-100);cursor:pointer;transition:background .1s;}
+.comm-card:active{background:var(--gray-50);}
+.comm-name{font-size:15px;font-weight:500;letter-spacing:-.2px;}
+.comm-meta{font-size:12px;color:var(--gray-400);margin-top:2px;font-family:'DM Mono',monospace;}
+.comm-right{text-align:right;flex-shrink:0;margin-left:12px;}
+.comm-count{font-size:11px;color:var(--gray-400);margin-top:4px;}
+
+.planning-card{margin:0 16px 10px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:15px;}
+
+/* DETAIL */
+.detail-header{padding:16px;}
+.detail-card{background:var(--gray-50);border-radius:var(--radius);padding:16px;border:1px solid var(--gray-100);}
+.detail-client{font-size:17px;font-weight:600;letter-spacing:-.3px;margin-bottom:14px;}
+.drow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--gray-200);font-size:13px;}
+.drow:last-child{border:none;}
+.drow-label{color:var(--gray-400);}
+.drow-val{font-weight:500;}
+.pdf-btn{background:var(--green-700);color:var(--white);border:none;border-radius:var(--radius-sm);padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* USERS */
+.user-card{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--gray-100);}
+.user-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;margin-right:12px;}
+.user-name{font-size:14px;font-weight:500;}
+.user-login{font-size:12px;color:var(--gray-400);font-family:'DM Mono',monospace;}
+
+/* LOADING */
+.loading-state{text-align:center;padding:40px;color:var(--gray-400);font-size:13px;}
+.spinner{width:24px;height:24px;border:2px solid var(--gray-200);border-top-color:var(--green-700);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* LOGOUT BTN */
+.logout-btn{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.8);font-size:13px;padding:5px 12px;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 24px;color:var(--gray-400);font-size:14px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LOGIN -->
+<div id="s-login" class="screen active">
+  <div class="login-inner">
+    <div class="login-logo">
+      <div class="logo-icon">🌲</div>
+      <h1>BoisStock Pro</h1>
+      <p>v1.0 · Nador</p>
+    </div>
+    <div class="field">
+      <label>Utilisateur</label>
+      <input id="lu" type="text" placeholder="Votre identifiant" autocomplete="username"/>
+    </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input id="lp" type="password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="btn-login" id="login-btn" onclick="doLogin()">Connexion</button>
+    <div id="login-err" class="login-err"></div>
+    <div class="login-footer">Données sécurisées · Google Sheets</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="s-dash" class="screen">
+  <div class="topbar">
+    <div class="avatar" id="av">AD</div>
+    <h2 id="dash-title">BoisStock Pro</h2>
+    <button class="logout-btn" onclick="doLogout()">Déco</button>
+  </div>
+  <div class="scroll-body">
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="stat-label">Articles</div><div class="stat-val dark">—</div></div>
+      <div class="stat-card"><div class="stat-label">Réservés</div><div class="stat-val amber">—</div></div>
+      <div class="stat-card"><div class="stat-label">Disponibles</div><div class="stat-val green">—</div></div>
+      <div class="stat-card"><div class="stat-label">Livrés</div><div class="stat-val blue">—</div></div>
+    </div>
+    <div class="menu-section">
+      <div class="section-label">Actions</div>
+      <div class="menu-item" onclick="openSearch()">
+        <div class="menu-icon" style="background:#e8f5e9;">🔍</div>
+        <div class="menu-text"><div class="menu-title">Recherche article</div><div class="menu-sub">Référence ou désignation</div></div>
+        <span class="menu-arrow">›</span>
+      </div>
+      <div class="menu-item" onclick="openCommandes()">
+        <div class="menu-icon" style="background:#e3f2fd;">📋</div>
+        <div class="menu-text"><div class="menu-title">Commandes</div><div class="menu-sub">Liste clients & planning</div></div>
+        <span class="menu-arrow">›</span>
+      </div>
+      <div class="menu-item" id="menu-clients" style="display:none;" onclick="openClients()">
+        <div class="menu-icon" style="background:#fce4ec;">👥</div>
+        <div class="menu-text"><div class="menu-title">Clients</div><div class="menu-sub">Répertoire clients</div></div>
+        <span class="menu-arrow">›</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECHERCHE -->
+<div id="s-search" class="screen">
+  <div class="topbar">
+    <span class="back-btn" onclick="show('s-dash')">‹</span>
+    <h2>Recherche</h2>
+  </div>
+  <div class="search-bar">
+    <div class="sbox">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="sinput" placeholder="Référence ou désignation..." oninput="doSearch(this.value)" autofocus/>
+    </div>
+  </div>
+  <div class="scroll-body" id="sresults">
+    <div class="hint-state">
+      <div class="hint-icon">🌲</div>
+      <p>Tapez pour rechercher</p>
+      <small>FDX001 · Madrier · Rouge...</small>
+    </div>
+  </div>
+</div>
+
+<!-- COMMANDES -->
+<div id="s-commandes" class="screen">
+  <div class="topbar">
+    <span class="back-btn" onclick="show('s-dash')">‹</span>
+    <h2>Commandes</h2>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="switchTab(this,'tab-clients')">Clients</div>
+    <div class="nav-tab" onclick="switchTab(this,'tab-planning')">Planning</div>
+  </div>
+  <div id="tab-clients" class="scroll-body">
+    <div class="search-bar">
+      <div class="sbox">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Rechercher client..." oninput="filterComm(this.value)"/>
+      </div>
+    </div>
+    <div id="comm-list"><div class="loading-state"><div class="spinner"></div>Chargement...</div></div>
+  </div>
+  <div id="tab-planning" class="scroll-body" style="display:none;">
+    <div style="padding:16px;" id="planning-list"><div class="loading-state"><div class="spinner"></div>Chargement...</div></div>
+  </div>
+</div>
+
+<!-- DETAIL COMMANDE -->
+<div id="s-detail" class="screen">
+  <div class="topbar">
+    <span class="back-btn" onclick="show('s-commandes')">‹</span>
+    <h2 id="dt-id">Détail</h2>
+    <button class="pdf-btn" onclick="alert('Export PDF → OneDrive (bientôt)')">PDF</button>
+  </div>
+  <div class="scroll-body">
+    <div class="detail-header">
+      <div class="detail-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+          <div class="detail-client" id="dt-client">—</div>
+          <span id="dt-badge" class="badge">—</span>
+        </div>
+        <div class="drow"><span class="drow-label">Commercial</span><span class="drow-val" id="dt-comm">—</span></div>
+        <div class="drow"><span class="drow-label">Magasinier</span><span class="drow-val" id="dt-mag">—</span></div>
+        <div class="drow"><span class="drow-label">Cariste</span><span class="drow-val" id="dt-car">—</span></div>
+        <div class="drow"><span class="drow-label">Date commande</span><span class="drow-val" id="dt-date">—</span></div>
+        <div class="drow"><span class="drow-label">Livraison prévue</span><span class="drow-val" id="dt-liv">—</span></div>
+        <div class="drow"><span class="drow-label">Notes</span><span class="drow-val" id="dt-notes">—</span></div>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="section-label" style="padding-top:0;">Articles réservés · <span id="dt-nb">0</span></div>
+        <div id="dt-articles" style="margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENTS -->
+<div id="s-clients" class="screen">
+  <div class="topbar">
+    <span class="back-btn" onclick="show('s-dash')">‹</span>
+    <h2>Clients</h2>
+  </div>
+  <div class="scroll-body" id="clients-list">
+    <div class="loading-state"><div class="spinner"></div>Chargement...</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbx43dWGdrU_hTmcUNad7rJ5Hk9pNvqun-n-X8zUrrIfMIvudUvRUJYry9GRz-AQkUo/exec';
+let currentUser = null;
+let allCommandes = [];
+let searchTimer = null;
+
+function api(params) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    const url = API + '?' + Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&') + '&callback=' + cbName;
+    window[cbName] = function(data) {
+      delete window[cbName];
+      document.body.removeChild(script);
+      resolve(data);
+    };
+    script.onerror = () => { delete window[cbName]; reject(new Error('JSONP error')); };
+    script.src = url;
+    document.body.appendChild(script);
+  });
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function switchTab(el, tabId) {
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-clients').style.display = tabId==='tab-clients'?'flex':'none';
+  document.getElementById('tab-planning').style.display = tabId==='tab-planning'?'flex':'none';
+  if(tabId==='tab-clients') document.getElementById('tab-clients').style.flexDirection='column';
+  if(tabId==='tab-planning') document.getElementById('tab-planning').style.flexDirection='column';
+}
+
+async function doLogin() {
+  const u = document.getElementById('lu').value.trim();
+  const p = document.getElementById('lp').value.trim();
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-err');
+  if (!u||!p){err.textContent='Remplissez tous les champs';return;}
+  btn.disabled=true; btn.textContent='Connexion...'; err.textContent='';
+  try {
+    const res = await api({action:'login',username:u,password:p});
+    if (res.success) {
+      currentUser = res;
+      const initials = res.nom.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+      document.getElementById('av').textContent = initials;
+      document.getElementById('dash-title').textContent = 'Bonjour, '+res.nom.split(' ')[0];
+      if (res.role==='ADMIN'||res.role==='COMMERCIAL') document.getElementById('menu-clients').style.display='flex';
+      show('s-dash');
+      loadStats();
+    } else {
+      err.textContent = res.error||'Identifiants incorrects';
+    }
+  } catch(e){ err.textContent='Erreur réseau — vérifiez la connexion';}
+  btn.disabled=false; btn.textContent='Connexion';
+}
+
+function doLogout() {
+  currentUser=null; allCommandes=[];
+  document.getElementById('lu').value='';
+  document.getElementById('lp').value='';
+  document.getElementById('login-err').textContent='';
+  show('s-login');
+}
+
+async function loadStats() {
+  try {
+    const r = await api({action:'getStats'});
+    document.getElementById('stats-grid').innerHTML=`
+      <div class="stat-card"><div class="stat-label">Total articles</div><div class="stat-val dark">${r.total||0}</div></div>
+      <div class="stat-card"><div class="stat-label">Réservés</div><div class="stat-val amber">${r.reserve||0}</div></div>
+      <div class="stat-card"><div class="stat-label">Disponibles</div><div class="stat-val green">${r.disponible||0}</div></div>
+      <div class="stat-card"><div class="stat-label">Livrés</div><div class="stat-val blue">${r.livre||0}</div></div>`;
+  } catch(e){}
+}
+
+function openSearch() {
+  document.getElementById('sinput').value='';
+  document.getElementById('sresults').innerHTML=`<div class="hint-state"><div class="hint-icon">🌲</div><p>Tapez pour rechercher</p><small>FDX001 · Madrier · Rouge...</small></div>`;
+  show('s-search');
+  setTimeout(()=>document.getElementById('sinput').focus(),300);
+}
+
+function doSearch(q) {
+  clearTimeout(searchTimer);
+  const res = document.getElementById('sresults');
+  if (!q||q.length<2){
+    res.innerHTML=`<div class="hint-state"><div class="hint-icon">🌲</div><p>Tapez pour rechercher</p><small>FDX001 · Madrier · Rouge...</small></div>`;
+    return;
+  }
+  res.innerHTML='<div class="loading-state"><div class="spinner"></div>Recherche...</div>';
+  searchTimer = setTimeout(async()=>{
+    try {
+      const data = await api({action:'search',q});
+      if (!data.results||!data.results.length){
+        res.innerHTML='<div class="hint-state"><div class="hint-icon">📭</div><p>Aucun article trouvé</p><small>'+q+'</small></div>';
+        return;
+      }
+      res.innerHTML = '<div style="padding:12px 0;">'+data.results.map(a=>{
+        const sc = a.statut==='DISPONIBLE'?'badge-green':a.statut==='RESERVE'?'badge-amber':'badge-blue';
+        const clientRow = a.client?`<div class="info-row"><span class="info-label">Client réservé</span><span class="info-val" style="color:#d97706;">${a.client}</span></div>`:'';
+        const cmdRow = a.commande?`<div class="info-row"><span class="info-label">Commande</span><span class="info-val" style="font-family:'DM Mono',monospace;font-size:11px;">${a.commande}</span></div>`:'';
+        return `<div class="result-card">
+          <div class="result-top">
+            <div>
+              <div class="result-ref">${a.ref}</div>
+              <div class="result-des">${a.designation}</div>
+            </div>
+            <span class="badge ${sc}">${a.statut||'—'}</span>
+          </div>
+          <div class="info-row"><span class="info-label">Dimensions</span><span class="info-val">${a.dimensions||'—'}</span></div>
+          <div class="info-row"><span class="info-label">Quantité</span><span class="info-val">${a.quantite||'—'} ${a.unite||''}</span></div>
+          <div class="info-row"><span class="info-label">Emplacement</span><span class="info-val">${a.emplacement||'—'}</span></div>
+          ${clientRow}${cmdRow}
+          <div class="date-tag">Màj: ${a.dateMaj||'—'}</div>
+        </div>`;
+      }).join('')+'</div>';
+    } catch(e){ res.innerHTML='<div class="hint-state"><div class="hint-icon">⚠️</div><p>Erreur de connexion</p></div>'; }
+  }, 500);
+}
+
+async function openCommandes() {
+  show('s-commandes');
+  document.getElementById('comm-list').innerHTML='<div class="loading-state"><div class="spinner"></div>Chargement...</div>';
+  document.getElementById('planning-list').innerHTML='<div class="loading-state"><div class="spinner"></div>Chargement...</div>';
+  try {
+    const data = await api({action:'getCommandes',client:''});
+    allCommandes = data.results||[];
+    renderCommandes(allCommandes);
+    renderPlanning(allCommandes);
+  } catch(e){
+    document.getElementById('comm-list').innerHTML='<div class="hint-state"><div class="hint-icon">⚠️</div><p>Erreur de connexion</p></div>';
+  }
+}
+
+function filterComm(q) {
+  const f = q?allCommandes.filter(c=>c.client.toLowerCase().includes(q.toLowerCase())||c.id.toLowerCase().includes(q.toLowerCase())):allCommandes;
+  renderCommandes(f);
+}
+
+function statBadge(s){
+  const m={'EN COURS':'badge-amber','PRET':'badge-green','PRÊT':'badge-green','LIVRE':'badge-blue','LIVRÉ':'badge-blue'};
+  return m[String(s).toUpperCase().trim()]||'badge-blue';
+}
+
+function renderCommandes(list) {
+  const el = document.getElementById('comm-list');
+  if (!list.length){el.innerHTML='<div class="empty">Aucune commande</div>';return;}
+  el.innerHTML = list.map((c,i)=>`
+    <div class="comm-card" onclick="showDetail(${allCommandes.indexOf(c)})">
+      <div style="flex:1;min-width:0;">
+        <div class="comm-name">${c.client}</div>
+        <div class="comm-meta">${c.id} · ${c.commercial||'—'}</div>
+      </div>
+      <div class="comm-right">
+        <span class="badge ${statBadge(c.statut)}">${c.statut}</span>
+        <div class="comm-count">${c.nbArticles||0} article(s)</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderPlanning(list) {
+  const el = document.getElementById('planning-list');
+  if (!list.length){el.innerHTML='<div class="empty">Aucune commande</div>';return;}
+  el.innerHTML = list.map(c=>`
+    <div class="planning-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:13px;font-weight:600;font-family:'DM Mono',monospace;">${c.id}</span>
+        <span class="badge ${statBadge(c.statut)}">${c.statut}</span>
+      </div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:4px;">${c.client}</div>
+      <div style="font-size:12px;color:var(--gray-400);">Livraison: ${c.dateLivraison||'—'} · ${c.commercial||'—'}</div>
+    </div>`).join('');
+}
+
+function showDetail(i) {
+  const c = allCommandes[i];
+  document.getElementById('dt-id').textContent = c.id;
+  document.getElementById('dt-client').textContent = c.client;
+  document.getElementById('dt-badge').textContent = c.statut;
+  document.getElementById('dt-badge').className = 'badge '+statBadge(c.statut);
+  document.getElementById('dt-comm').textContent = c.commercial||'—';
+  document.getElementById('dt-mag').textContent = c.magasinier||'—';
+  document.getElementById('dt-car').textContent = c.cariste||'—';
+  document.getElementById('dt-date').textContent = c.dateCommande||'—';
+  document.getElementById('dt-liv').textContent = c.dateLivraison||'—';
+  document.getElementById('dt-notes').textContent = c.notes||'—';
+  document.getElementById('dt-nb').textContent = c.nbArticles||0;
+  document.getElementById('dt-articles').innerHTML=`<div class="detail-card" style="text-align:center;color:var(--gray-400);font-size:13px;padding:20px;">Voir les articles dans Google Sheets<br><small style="font-family:'DM Mono',monospace;font-size:11px;margin-top:4px;display:block;">Filtrer STOCK par ${c.id}</small></div>`;
+  show('s-detail');
+}
+
+async function openClients() {
+  show('s-clients');
+  try {
+    const data = await api({action:'getClients'});
+    const list = data.results||[];
+    const colors = ['#e8f5e9','#e3f2fd','#fce4ec','#fff3e0','#f3e5f5'];
+    document.getElementById('clients-list').innerHTML = list.map((c,i)=>`
+      <div class="user-card">
+        <div class="user-av" style="background:${colors[i%colors.length]};">${c.nom.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase()}</div>
+        <div style="flex:1;">
+          <div class="user-name">${c.nom}</div>
+          <div class="user-login">${c.ville||''} · ${c.tel||''}</div>
+        </div>
+        <div style="font-size:12px;color:var(--gray-400);text-align:right;">${c.commercial||''}</div>
+      </div>`).join('');
+  } catch(e){
+    document.getElementById('clients-list').innerHTML='<div class="hint-state"><div class="hint-icon">⚠️</div><p>Erreur de connexion</p></div>';
+  }
+}
+
+// Handle enter key on login
+document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('lu').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('lp').focus();});
+</script>
+</body>
+</html>
